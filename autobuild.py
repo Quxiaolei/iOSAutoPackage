@@ -200,7 +200,7 @@ def buildProject(project, scheme):
 	changeBundle_identifier(project, scheme)
 
 	# clean 工程
-	cleanCmd = "xcodebuild clean -workspace %s -scheme %s -configuration %s -alltargets" % (
+	cleanCmd = "xcodebuild clean -workspace %s -scheme %s -configuration %s" % (
 	workspace, scheme, CONFIGURATION)
 	process = subprocess.Popen(cleanCmd, shell=True)
 	process.wait()
@@ -237,7 +237,7 @@ def buildWorkspace(workspace, scheme):
 	print("\033[32m************************* pod完成 ************************* \033[0m\n")
 
 	# clean 工程
-	cleanCmd = "xcodebuild clean -workspace %s -scheme %s -configuration %s -alltargets" % (
+	cleanCmd = "xcodebuild clean -workspace %s -scheme %s -configuration %s" % (
 	workspace, scheme, CONFIGURATION)
 	process = subprocess.Popen(cleanCmd, shell=True)
 	process.wait()
