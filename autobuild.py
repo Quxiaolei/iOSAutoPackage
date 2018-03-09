@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
+# coding: utf-8
 
 # python autobuild.py -p youproject.xcodeproj -s schemename -m description
 # python autobuild.py -w youproject.xcworkspace -s schemename -m description
@@ -9,7 +9,6 @@ import subprocess
 import requests
 import os, sys
 import time
-import commands
 
 import smtplib
 from email.mime.text import MIMEText
@@ -39,11 +38,15 @@ PGYDESC = "Default update description"
 QuicklyInstallURL = ""
 
 # 邮件参数
-emailFromUser = ""
+# FIXME: YOUR_EMAIL
+emailFromUser = "YOUR_EMAIL"
 # 多个邮箱使用,分割
+# FIXME: list of postUser
 emailToUser = ["",""]
-acc = ["",""]
-emailPassword = ""
+# FIXME: list of CCUser
+accUser = ["",""]
+# FIXME: YOUR_EMAIL_PASSWORD
+emailPassword = "YOUR_PASSWORD"
 emailHost = "smtp.exmail.qq.com"
 
 # 临时变量
@@ -68,9 +71,29 @@ def parserUploadResult(jsonResult):
 		print("Upload Fail!")
 		print("Reason:" + jsonResult['message'])
 
+# 修改邮箱格式为字符串
+def formatForEmailUser(userList):
+	if isinstance(userList,list) and len(userList) >0:
+		if len(userList) == 1:
+			return  userList[0]
+		else:
+			return ",".join(userList)
+	elif isinstance(userList,str):
+		return userList
+	else:
+		print("邮箱格式转换失败")
+		exit(0)
 
 # 发邮件给测试不带附件
 def sendEmail(jsonResult):
+	# guard
+	if not emailFromUser.strip():
+		print("emailFromUser或者emailToUser格式数据不对")
+		exit(0)
+	formatForEmailUser(emailToUser)
+	downUrl = DOWNLOAD_BASE_URL +"/"+jsonResult['data']['appShortcutUrl']
+	appQRCodeURL = jsonResult['data']['appQRCodeURL']
+	appVersion = jsonResult['data']['appVersion']
 	downUrl = DOWNLOAD_BASE_URL +"/"+jsonResult['data']['appShortcutUrl']
 	appQRCodeURL = jsonResult['data']['appQRCodeURL']
 	appVersion = jsonResult['data']['appVersion']
@@ -87,19 +110,19 @@ def sendEmail(jsonResult):
 	appVersion, appBuildTime, appUpdateDescription, appQRCodeURL, downUrl, downUrl, QuicklyInstallURL), "html", "utf-8")
 	msg.attach(msgtext)
 
-	msg['to'] = ",".join(emailToUser)
-	msg['cc'] = ",".join(acc)
+	msg['to'] = formatForEmailUser(emailToUser)
+	msg['cc'] = formatForEmailUser(accUser)
 	msg['from'] = emailFromUser
-	msg['subject'] = '[iOS测试]新的iOS测试包已经上传，请注意查收'
+	msg['subject'] = '【iOS测试】新的iOS测试包已经上传，请注意查收'
 
 	try:
 		server = smtplib.SMTP()
 		server.connect(emailHost)
 		server.login(emailFromUser, emailPassword)
-		server.sendmail(msg['from'], emailToUser+acc, msg.as_string())
+		server.sendmail(msg['from'], msg['to'], msg.as_string())
 		server.quit()
 		print('发送成功')
-	except Exception, e:
+	except Exception as e:
 		print(str(e))
 	return
 
@@ -283,9 +306,6 @@ def xcbuild(options):
 
 
 def main():
-	# 转换编码格式
-	reload(sys)
-	sys.setdefaultencoding('utf8')
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-w", "--workspace", help="Build the workspace name.xcworkspace.", metavar="name.xcworkspace")
