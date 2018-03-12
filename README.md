@@ -51,3 +51,5 @@ ImportError: No module named requests
 * [iOS：使用jenkins实现xcode自动打包](http://blog.csdn.net/u014641783/article/details/50866196)
 * [iOS Shell脚本自动构建打包、发布、部署jenkins](https://www.jianshu.com/p/ad4a9c40ae59)
 * [iOS--脚本配置Xcode Project（打包）](http://blog.csdn.net/chsadin/article/details/61192923)
+* [xctool(facebook)](https://github.com/facebook/xctool)
+* [fastlane](https://github.com/fastlane/fastlane)
