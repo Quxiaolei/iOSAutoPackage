@@ -43,6 +43,14 @@ ImportError: No module named requests
 
 使用`$ sudo pip install requests`或者`sudo easy_install -U requests`即可解决.
 
+```shell
+xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance
+```
+
+使用`sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`即可解决.
+
+[xcode-select active developer directory error](https://stackoverflow.com/questions/17980759/xcode-select-active-developer-directory-error)
+
 ## 参考资料
 
 * [iOS自动打包并发布脚本](https://github.com/carya/Util)

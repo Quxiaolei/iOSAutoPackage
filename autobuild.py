@@ -132,7 +132,6 @@ def uploadIpaToPgyer(ipaPath):
 	if USER_KEY == "" or API_KEY == "":
 		return
 	ipaPath = os.path.expanduser(ipaPath)
-	ipaPath = unicode(ipaPath, "utf-8")
 	files = {'file': open(ipaPath, 'rb')}
 	headers = {'enctype': 'multipart/form-data'}
 	payload = {'uKey': USER_KEY, '_api_key': API_KEY, 'publishRange': '2', 'isPublishToPublic': '2',
@@ -150,17 +149,17 @@ def uploadIpaToPgyer(ipaPath):
 # 创建输出ipa文件路径: ~/Desktop/AutoPackage/{scheme}{2018-2-27_14-05-10}
 def buildExportDirectory(scheme):
 	dateCmd = 'date "+%Y-%m-%d_%H-%M-%S"'
-	process = subprocess.Popen(dateCmd, stdout=subprocess.PIPE, shell=True)
-	(stdoutdata, stderrdata) = process.communicate()
-	exportDirectory = "%s%s%s" % (EXPORT_MAIN_DIRECTORY, scheme, stdoutdata.strip())
+	process = subprocess.getstatusoutput(dateCmd)
+	(stdoutdata, stderrdata) = process
+	exportDirectory = "%s%s%s" % (EXPORT_MAIN_DIRECTORY, scheme, stderrdata)
 	return exportDirectory
 
 
 def buildArchivePath(tempName):
-	process = subprocess.Popen("pwd", stdout=subprocess.PIPE)
-	(stdoutdata, stderrdata) = process.communicate()
+	process = subprocess.getstatusoutput("pwd")
+	(stdoutdata, stderrdata) = process
 	archiveName = "%s.xcarchive" % (tempName)
-	archivePath = "%s/%s" % (stdoutdata.strip(), archiveName)
+	archivePath = "%s/%s" % (stderrdata, archiveName)
 	return archivePath
 
 
@@ -173,9 +172,9 @@ def getNewIpaPath(exportPath, scheme):
 
 def getIpaPath(exportPath):
 	cmd = "ls %s" % (exportPath)
-	process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-	(stdoutdata, stderrdata) = process.communicate()
-	ipaName = stdoutdata.strip()
+	process = subprocess.getstatusoutput(cmd)
+	(stdoutdata, stderrdata) = process
+	ipaName = stderrdata
 	ipaPath = exportPath + "/" + ipaName
 	print("getIpaPath_ipaPath: " + ipaPath)
 	return ipaPath
@@ -185,10 +184,10 @@ def exportArchive(scheme, archivePath):
 	exportDirectory = buildExportDirectory(scheme)
 	exportCmd = "xcodebuild -exportArchive -archivePath %s -exportPath %s -exportOptionsPlist %s" % (
 	archivePath, exportDirectory, EXPORT_OPTIONS_PLIST)
-	process = subprocess.Popen(exportCmd, shell=True)
-	(stdoutdata, stderrdata) = process.communicate()
+	process = subprocess.getstatusoutput(exportCmd)
+	(stdoutdata, stderrdata) = process
 
-	signReturnCode = process.returncode
+	signReturnCode = stdoutdata
 	if signReturnCode != 0:
 		print("export %s failed" % (scheme))
 		return ""
@@ -202,15 +201,15 @@ def changeBundle_identifier(workspace, scheme):
 	# 获取版本号,内部版本号,bundleID
 	info_plist_path = "%s/%s.plist" % (project_name, scheme)
 	# 3.1.0
-	bundle_version = commands.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' %s" % (info_plist_path))[1]
+	bundle_version = subprocess.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' %s" % (info_plist_path))[1]
 	# $(PRODUCT_BUNDLE_IDENTIFIER)
-	bundle_build_version = commands.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' %s" % (info_plist_path))[1]
+	bundle_build_version = subprocess.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' %s" % (info_plist_path))[1]
 	# 0226_142435
-	bundle_identifier = commands.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' %s" % (info_plist_path))[1]
+	bundle_identifier = subprocess.getstatusoutput("/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' %s" % (info_plist_path))[1]
 
 	# 更新build号
 	timestamp = time.strftime("%m%d_%H%M%S")
-	commands.getstatusoutput("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion %s' '%s'" % (timestamp, info_plist_path))
+	subprocess.getstatusoutput("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion %s' '%s'" % (timestamp, info_plist_path))
 
 	global appBuildTime
 	appBuildTime = timestamp
